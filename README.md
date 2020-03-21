@@ -7,3 +7,4 @@
   retorna os dados de vários países com base na data</p>
 <p>Função covid_19_comparation:
   retorna os dados de vários países com base no números de dias depois da primeira confirmação de cada caso</p>
+<p> Função extrapolate: Extrapola os casos com base na média dos ultimos 4 dias </p>
