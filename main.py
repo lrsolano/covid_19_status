@@ -214,9 +214,9 @@ def lists(df):
 def treatment(country):
     
     #abre os arquivos de dataset
-    df1 = pd.read_csv('dat/time_series_2019-ncov-Confirmed.csv',delimiter=',')
-    df2 = pd.read_csv('dat/time_series_2019-ncov-Deaths.csv',delimiter=',')
-    df3 = pd.read_csv('dat/time_series_2019-ncov-Recovered.csv',delimiter=',')
+    df1 = pd.read_csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv',delimiter=',')
+    df2 = pd.read_csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv',delimiter=',')
+    df3 = pd.read_csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv',delimiter=',')
     
     #filtra o país selecionado dos dataset
     confirmed = df1[df1['Country/Region']==country]
