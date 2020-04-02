@@ -8,3 +8,7 @@
 <p>Função covid_19_comparation:
   retorna os dados de vários países com base no números de dias depois da primeira confirmação de cada caso</p>
 <p> Função extrapolate: Extrapola os casos com base na média dos ultimos 4 dias </p>
+<p> Função new_cases: Gráfico novos casos X total de casos </p>
+<p> Função rate: Acompanhamento das taxas oa longo do tempo</p>
+<p> Função lethality: letalidade e taxa de recuperação </p>
+
