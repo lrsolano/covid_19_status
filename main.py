@@ -43,7 +43,7 @@ def covid_19_country(country='Brazil',extra=0):
     fig.write_html('fig{}.html'.format(country), auto_open=True)
           
 #compara pela data varios países 
-def covid_world(countrys=['Brazil','Spain','China','Italy','US']):
+def covid_world(countrys=['Brazil','Spain','China','Italy','US','Netherlands']):
     
     
     #cria a imagem para ser plotada com 3 linhas e 1 coluna
@@ -85,7 +85,7 @@ def covid_world(countrys=['Brazil','Spain','China','Italy','US']):
     
     
 #compara os dias de infecção de varios países   
-def covid_19_comparation(countrys=['Brazil','Spain','China','Italy','US']): 
+def covid_19_comparation(countrys=['Brazil','Spain','China','Italy','US','Netherlands']): 
     
     #cria a imagem para ser plotada com 3 linhas e 1 coluna
     fig = make_subplots(rows=3, cols=1,
@@ -191,37 +191,130 @@ def extrapolate(country='Brazil',plus=1,future=30):
     #salva a imagem
     fig.write_html('fig_extrapolate.html', auto_open=True)
     
-    
-def new_cases(countrys=['Brazil','Spain','China','Italy','US']):
+#Gráfico novos casos X total de casos    
+def new_cases(countrys=['Brazil','Spain','China','Italy','US','Netherlands']):
     #cria a imagem para ser plotada com 3 linhas e 1 coluna
     
     
     #cria a repetição na lista de países
     df = pd.DataFrame(columns=['country','confirmed','news','days'])
     for c in countrys:
-        
         confirmed, deaths, recovered = treatment(c)
         day = 0
         yesterday = 0
         for x in confirmed:
-            news = x - yesterday
-            new_row = {'country':c, 'confirmed':x, 'news':news,'days':day}
-            df = df.append(new_row,ignore_index=True)
-            day += 1
-            yesterday = x
-                
-        
-     
-        
+            if x != yesterday:
+                news = x - yesterday
+                new_row = {'country':c, 'confirmed':x, 'news':news,'days':day}
+                df = df.append(new_row,ignore_index=True)
+                day += 1
+                yesterday = x             
+ 
     #adiciona o grafico de confirmados do país a imagem
-    fig = px.line(df, x="days", y="news", color="country",
+    fig = px.line(df, x="confirmed", y="news", color="country",
            hover_name="country", log_x=True, log_y=True, range_y=[10,20000])
+    fig.update_traces(mode='lines+markers')
     
     
     
     #salva a imagem
     fig.write_html('fig_new_cases.html', auto_open=True)
+
+#Acompanhamento das taxas oa longo do tempo   
+def rate(countrys=['Brazil','Spain','China','Italy','US','Netherlands'], tot=0):
+    
+    if tot == 0:
+        op = 'rate'
+    else:
+        op = 'rate_tot'
+    
+    #cria a imagem para ser plotada com 3 linhas e 1 coluna
+    fig = make_subplots(rows=3, cols=1,
+                        subplot_titles=("Confirmed", "Deaths", "recovered"))
+    for c in countrys:
         
+        #gera um codigo rgb unico para cada repetição
+        red = randint(0, 255)
+        green = randint(0, 255)
+        blue = randint(0, 255)
+        rgb = 'rgb({},{},{})'.format(red,green,blue)
+        
+        #cria os datasets já organizados  
+        confirmed, deaths, recovered = treatment(c)
+        
+        #plota o gráfico de taxa de crescimento 
+        df_c = create_df(confirmed,c)
+        fig.add_trace(go.Scatter(x=df_c['days'], 
+                           y=df_c[op],
+                           mode='lines+markers',
+                           line=dict(color=rgb),
+                           name=c), row=1,col=1)
+        
+        df_d = create_df(deaths,c)
+        fig.add_trace(go.Scatter(x=df_d['days'], 
+                           y=df_d[op],
+                           mode='lines+markers',
+                           line=dict(color=rgb),
+                           name=c), row=2,col=1)
+        
+        df_r = create_df(recovered,c)
+        fig.add_trace(go.Scatter(x=df_r['days'], 
+                           y=df_r[op],
+                           mode='lines+markers',
+                           line=dict(color=rgb),
+                           name=c), row=3,col=1)
+      
+    #salva a imagem
+    fig.write_html('fig_rates.html', auto_open=True)
+
+#letalidade e taxa de recuperação  
+def lethality(countrys=['Brazil','Spain','China','Italy','US','Netherlands']):
+    fig = make_subplots(rows=3, cols=1,
+                        subplot_titles=("Deaths", "Recovered","Days"))
+    for c in countrys:
+        
+        #gera um codigo rgb unico para cada repetição
+        red = randint(0, 255)
+        green = randint(0, 255)
+        blue = randint(0, 255)
+        rgb = 'rgb({},{},{})'.format(red,green,blue)
+        
+        #cria os datasets já organizados  
+        confirmed, deaths, recovered = treatment(c)
+        
+        #DataFrame de letalidade
+        df = {'confirmed':confirmed,'deaths':deaths,'recovered':recovered}
+        df = pd.DataFrame(df)
+        df['lethality'] = round(((df['deaths']/df['confirmed'])*100)).fillna(0)
+        df = df[df['lethality']>0]
+        days = list(range(len(df)))
+        
+        #DataFrame de recuperados
+        df2 = {'confirmed':confirmed,'deaths':deaths,'recovered':recovered}
+        df2 = pd.DataFrame(df2)
+        df2['recovered'] = round(((df2['recovered']/df2['confirmed'])*100)).fillna(0)
+        df2 = df2[df2['recovered']>0]
+        days2 = list(range(len(df2)))
+        
+        #plota os gráficos
+        fig.add_trace(go.Scatter(x=days, 
+                           y=df['lethality'],
+                           mode='lines+markers',
+                           line=dict(color=rgb),
+                           name=c), row=1,col=1)
+        fig.add_trace(go.Scatter(x=days2, 
+                           y=df2['recovered'],
+                           mode='lines+markers',
+                           line=dict(color=rgb),
+                           name=c), row=2,col=1)
+        '''Verificar erro quando coloca 2 paises ou mais '''
+        fig.add_trace(go.Scatter(x=df.index, 
+                           y=df['lethality'],
+                           mode='lines+markers',
+                           line=dict(color=rgb),
+                           name=c), row=3,col=1)
+    #salva a imagem
+    fig.write_html('fig_lethality.html', auto_open=True)
 
         
 #cria lista com numero de casos e dia desde a primeira confirmação do caso   
@@ -242,6 +335,7 @@ def lists(df):
 
     return data,days
 
+#Função para importar os dados do GITHUB
 def treatment(country):
     
     #abre os arquivos de dataset
@@ -269,17 +363,52 @@ def treatment(country):
        
 #Extrapola aumentando com a média de aumento dos casos nos ultimos 4 dias
 def extrapoletor(data,days,future,plus=1):
+    #Cria media dos 4 dias
     media = (((data[-1]/data[-2])-1) + ((data[-2]/data[-3])-1) + ((data[-3]/data[-4])-1)+ ((data[-4]/data[-5])-1))/4
     media = media * plus
     media += 1
+    #Pega o ultimo dia para começar a extrapolar
     today = data[-1]
     extra = [today]
+    #repetição para criar nova lista
     for x in range(len(days)-1,len(days)+future):
         i = round(today*media)
         extra.append(i)
         today = i
+        
+    #cria lista com os dias previstos
     day = list(range(len(days)-1,len(days)+future))
     return extra, day , media
+
+#Cria DataFrame como taxas e taxas totais
+def create_df (df_array,country):
+    
+    #cria as colunas
+    df = pd.DataFrame(columns=['country','confirmed','news','days','rate','rate_tot'])
+    
+    #declaração das variaveis
+    day = 0
+    yesterday = 0
+    rate = 0
+    rate_tot = 0
+    
+    #inicio repetição por dia
+    for x in df_array:
+        #verifica se teve mudança na taxa de um dia para o outro
+        if x != yesterday:
+            news = x - yesterday
+            
+            #verifica se dia anterior foi zero para não dar erro na divisão
+            if yesterday != 0:
+                rate = round(((news/yesterday)*100))
+                rate_tot = round(((news/x)*100))
+            #adiciona no DataFrame
+            new_row = {'country':country, 'confirmed':x, 'news':news,'days':day, 'rate':rate,'rate_tot':rate_tot}
+            df = df.append(new_row,ignore_index=True)
+            day += 1
+            yesterday = x
+    return df
+    
         
         
         
